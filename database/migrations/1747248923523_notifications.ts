@@ -9,7 +9,7 @@ export default class extends BaseSchema {
       table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
       table.string('title').notNullable()
       table.text('body').notNullable()
-      table.json('data').nullable()
+      table.text('data').nullable()
       table.boolean('is_read').defaultTo(false)
       table.enum('type', ['order', 'ride', 'payment', 'system']).notNullable()
       /**

@@ -3,6 +3,7 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import User from 'App/Models/User'
 import { schema, rules } from '@ioc:Adonis/Core/Validator'
 import Pricing from 'App/Models/Pricing'
+import Ride from 'App/Models/Ride'
 // import app from '@adonisjs/core/services/app'
 export default class AuthController {
   // Schema de validation pour l'inscription
@@ -161,7 +162,104 @@ public async update({ params, request, response }: HttpContextContract) {
 }
 
 
+public async show({ params, response }: HttpContextContract) {
+  const vehiculeId = params.vehicule_id;
 
+  console.log("vehicule_id" ,vehiculeId)
+  console.log('params' ,params);
+  const pricing = await Pricing.query()
+    .where('vehicle_id', vehiculeId)
+    .first();
+
+  if (!pricing) {
+    return response.notFound({ message: 'Aucun tarif trouvé pour ce véhicule.' });
+  }
+
+  console.log("data" ,pricing)
+
+  return response.json(pricing)
+
+
+}
+
+
+
+ public async financialStats({ response }: HttpContextContract) {
+    try {
+      // Calcul des statistiques financières
+      const [totalRevenue, totalRides] = await Promise.all([
+        this.getTotalRevenue(),
+        this.getTotalRides(),
+      ])
+
+      // Calcul des sous-statistiques
+      const commissionRate = 0.25 // 25% de commission
+      const commission = totalRevenue * commissionRate
+      const driverPayments = totalRevenue - commission
+
+      return response.json([
+        {
+          id: 'total_revenue',
+          title: "Revenu total",
+          value: totalRevenue,
+          change: "+5%", // À remplacer par une logique de comparaison périodique
+          trend: "up"
+        },
+        {
+          id: 'total_rides',
+          title: "Courses",
+          value: totalRides,
+          change: "+8%",
+          trend: "up"
+        },
+        {
+          id: 'commission',
+          title: "Commission",
+          value: commission,
+          change: "+3%",
+          trend: "up"
+        },
+        {
+          id: 'driver_payments',
+          title: "Paiements chauffeurs",
+          value: driverPayments,
+          change: "+3%",
+          trend: "up"
+        }
+      ])
+    } catch (error) {
+      return response.status(500).json({
+        message: "Erreur lors de la récupération des statistiques financières"
+      })
+    }
+  }
+
+  private async getTotalRevenue(): Promise<number> {
+    const result = await Ride.query()
+      .where('status', 'completed')
+      .where('is_paid', true)
+      .sum('price as total')
+      .first()
+
+    return Number(result?.$extras.total) || 0
+  }
+
+  private async getTotalRides(): Promise<number> {
+    const result = await Ride.query()
+      .where('status', 'completed')
+      .where("is_paid" ,true)
+      .count('* as total')
+      .first()
+
+    return Number(result?.$extras.total) || 0
+  }
+
+  // Méthode optionnelle pour les variations périodiques
+  // private async getPeriodComparison() {
+  //   // Implémentez la logique de comparaison avec la période précédente
+  //   // Ex: comparer avec le mois dernier
+  //   return 0
+  // }
 
 
   /**

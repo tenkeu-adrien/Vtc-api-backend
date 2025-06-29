@@ -12,7 +12,7 @@ export default class extends BaseSchema {
       table.string('avatar_url').nullable()
       table.date('date_of_birth').nullable()
       table.enum('gender', ['male', 'female', 'other']).nullable()
-      table.json('address')
+      table.text('address')
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */

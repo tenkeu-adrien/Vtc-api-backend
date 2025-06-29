@@ -26,7 +26,7 @@ export default class Profile extends BaseModel {
   public gender: 'male' | 'female' | 'other' | null
 
   @column()
-  public address: object
+  public address: string
 
   @belongsTo(() => User)
   public user: BelongsTo<typeof User>

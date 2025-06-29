@@ -1,7 +1,7 @@
 // app/Enums/RideStatuses.ts
 export enum RideStatuses {
     COMPLETED = 'completed',
-    CANCELLED = 'cancelled'
+    // CANCELLED = 'cancelled'
   }
 
 
@@ -9,7 +9,7 @@ export enum RideStatuses {
 
   // app/Enums/VehicleTypes.ts
 export enum VehicleTypes {
-    MOTO = 'moto',
+    MOTO = 'moto-taxi',
     TRICYCLE = 'tricycle'
   }
 

@@ -18,6 +18,7 @@ export default class extends BaseSchema {
       table.string("avatar").nullable()
       table.string("jointe").nullable()
       table.string("driver_type").nullable()
+      table.string('fcm_token').nullable()
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */

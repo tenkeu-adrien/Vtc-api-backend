@@ -150,6 +150,63 @@ export default class UsersController {
 
 
 
+  public async availableDrivers({ request, response }: HttpContextContract) {
+    try {
+      const vehicleType = request.input('vehicleType')
+
+      if (!vehicleType) {
+        return response.badRequest({ success: false, message: 'Le type de véhicule est requis.' })
+      }
+
+      const drivers = await User.query()
+        .where('role', 'driver')
+        .andWhere('vehicule_type', vehicleType)
+        .andWhere('is_verified', true)
+        .andWhere('is_deleted', false)
+
+      return response.ok({
+        success: true,
+        drivers,
+        message: 'Liste des chauffeurs disponibles récupérée avec succès.',
+      })
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des chauffeurs disponibles :', error)
+      return response.internalServerError({
+        success: false,
+        message: 'Erreur serveur lors de la récupération des chauffeurs disponibles.',
+      })
+    }
+  }
+
+
+
+    public async updateFcmToken({ request, params, response }: HttpContextContract) {
+    try {
+      const userId = params.id
+      const token = request.input('token')
+
+      if (!token) {
+        return response.badRequest({ success: false, message: 'Token FCM manquant.' })
+      }
+
+      const user = await User.findOrFail(userId)
+      user.fcmToken = token
+      await user.save()
+
+      return response.ok({
+        success: true,
+        message: 'Token FCM enregistré avec succès.',
+      })
+    } catch (error) {
+      console.error('❌ Erreur enregistrement FCM token:', error)
+      return response.internalServerError({
+        success: false,
+        message: 'Erreur serveur lors de l’enregistrement du token.',
+      })
+    }
+  }
+
+
 
   public async promo({ request, params, response  }: HttpContextContract) {
     const validationSchema = schema.create({
@@ -212,6 +269,8 @@ export default class UsersController {
 // Pour vérifier les promos actives par batch
 async checkActivePromos({ request, response }) {
   const { userIds } = request.only(['userIds'])
+
+  console.log("userIds code apis" ,userIds)
   const promos = await PromoCode.query()
     .whereIn('user_id', userIds)
     .where('is_active', true)
@@ -223,6 +282,7 @@ async checkActivePromos({ request, response }) {
     result[promo.userId] = promo.toJSON()
   })
   
+  console.log("resultat dans l'apis " ,result)
   return response.ok({ data: result })
 }
 

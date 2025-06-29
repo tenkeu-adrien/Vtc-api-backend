@@ -35,17 +35,22 @@ Route.group(() => {
 
   Route.get('pricing', 'AuthControllers.index')
   Route.put('pricing/:id', 'AuthControllers.update')
+    Route.get('pricing/:vehicule_id', 'AuthControllers.show')
 
 Route.get('/finance/stats', 'UsersController.getFinancialStats');
   Route.get('/users', 'UsersController.index')
    Route.get('/user/profile', 'AuthControllers.profile')
   Route.get('/users/:id', 'UsersController.indexx')
+  Route.get('/dashboard/financial-stats', 'AuthControllers.financialStats')
   Route.get('/users/show/:id', 'UsersController.show')
   Route.patch('/users/delete/:id', 'UsersController.destroy')
   Route.patch('/users/update/:id', 'UsersController.updated')
   Route.post('/users/:id/promo-codes', 'UsersController.promo')
+  Route.post('/users/:id/fcm-token', 'UsersController.updateFcmToken')
   Route.get('/ratings/me', 'RatingsController.getUserRatings').middleware('auth')
     Route.post('/users/check-active-promos', 'UsersController.checkActivePromos')
+    Route.get('/drivers/available', 'UsersController.availableDrivers')
+
     
     // Récupérer la promo active d'un utilisateur spécifique
     Route.get('/:userId/active-promo', 'UsersController.getActivePromo')
@@ -68,7 +73,7 @@ Route.group(() => {
   // Client routes
   Route.group(() => {
     // Courses
-    Route.post('/rides/request', 'RidesController.store')
+    Route.post('/rides', 'RidesController.store')
         Route.get('/rides', 'RidesController.get')
     Route.get('/rides/history', 'RidesController.index')
     Route.patch('/rides/:id/cancel', 'RidesController.cancelRide')
@@ -98,6 +103,11 @@ Route.get('/rides/payment-distribution', 'RidesController.paymentDistribution');
   // .middleware(['auth', 'admin'])
 
 
+  Route.group(() => {
+  Route.get('/drivers/top', 'RidesController.topDrivers')
+  Route.get('/clients/top', 'RidesController.topClients')
+  Route.get('/rides/stats', 'RidesController.rideStats')
+})
 
 
 
@@ -143,9 +153,9 @@ Route.group(() => {
   // .middleware(['auth', 'checkRole:client'])
   // Driver routes
   Route.group(() => {
-    Route.get('/rides/available', 'RideController.available')
-    Route.post('/rides/:id/accept', 'RideController.accept')
-    Route.post('/rides/:id/complete', 'RideController.complete')
+    Route.get('/rides/available', 'RidesController.get')
+    Route.post('/rides/:id/accept', 'RidesController.accept')
+    Route.post('/rides/:id/complete', 'RidesController.complete')
   })
   // .middleware(['auth', 'checkRole:driver'])
   // Delivery man routes

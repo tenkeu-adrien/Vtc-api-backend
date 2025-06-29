@@ -12,7 +12,7 @@ export default class PartnerShop extends BaseModel {
   public name: string
 
   @column()
-  public address: object
+  public address: string
 
   @column()
   public contactPhone: string

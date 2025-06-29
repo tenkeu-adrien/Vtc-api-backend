@@ -4,6 +4,7 @@ import Ride from 'App/Models/Ride'
 import { schema } from '@ioc:Adonis/Core/Validator'
 import { DateTime } from 'luxon'
 import Database from '@ioc:Adonis/Lucid/Database'
+import Ws from 'App/Services/Ws'
 
 export default class RidesController {
   public async index({ request,response }: HttpContextContract) {
@@ -45,49 +46,100 @@ export default class RidesController {
   
     .orderBy('completed_at', 'desc') // tri facultatif, mais utile
 
-  return response.ok({
+  return response.json({
     message: 'Completed rides fetched successfully',
     data: rides.map(ride => ride.serialize())
   })
 }
 
 
+// Controller corrigé
+public async store({ request, response }: HttpContextContract) {
+  // console.log("request", request.body())
 
-  public async store({ request ,response}: HttpContextContract) {
+  // Récupération des données brutes pour vérifier le type de véhicule
+  const rawData = request.all()
+  let vehicleType = rawData.vehicleType
 
-    console.log("request" ,request.body())
-    const schemaRide = schema.create({
-      vehicleType: schema.enum(['moto', 'tricycle'] as const),
-// Accepte absolument tout type
-      paymentMethod: schema.string.optional(),
-      duration: schema.string.optional(),
-      distance: schema.number.optional(),
-      price: schema.number.optional(),
+  // Transformation de "livraison" en "moto-taxi"
+  if (vehicleType === 'livraison') {
+    vehicleType = 'moto-taxi'
+  }
+
+  const schemaRide = schema.create({
+    vehicleType: schema.enum(['moto-taxi', 'tricycle'] as const),
+    paymentMethod: schema.enum(['cash', 'orange_money', 'mobile_money'] as const),
+    duration: schema.string.optional(),
+    distance: schema.number.optional(),
+    price: schema.number(),
+    pickupLocation: schema.object().members({
+      address: schema.string(),
+      coordinates: schema.object().members({
+        latitude: schema.number(),
+        longitude: schema.number()
+      })
+    }),
+    destinationLocation: schema.object().members({
+      address: schema.string(),
+      coordinates: schema.object().members({
+        latitude: schema.number(),
+        longitude: schema.number()
+      })
+    }),
+    scheduled_at: schema.date.optional()
+  })
+
+  // On fusionne les données modifiées avec les données originales
+  const payload = {
+    ...request.all(),
+    vehicleType
+  }
+
+  try {
+    const data = await request.validate({ 
+      schema: schemaRide,
+      data: payload // On utilise les données modifiées pour la validation
     })
 
-    const data = await request.validate({ schema: schemaRide })
-  
-    // console.log("auth middleware" , auth.user)
+    // console.log("data après validation", data)
+
     const ride = await Ride.create({
-      ...data,
+      vehicleType: data.vehicleType,
+      paymentMethod: data.paymentMethod,
+      duration: data.duration,
+      distance: data.distance,
+      price: data.price,
+      recipient: request.input("recipientInfo") || null,
+      pickupLocation: data.pickupLocation,
+      destinationLocation: data.destinationLocation,
+      scheduledAt: data.scheduled_at,
       clientId: 1,
-      pickupLocation:request.input("pickupLocation") ,
-      destinationLocation:request.input("destinationLocation"),
-      recipient:request.input("recipient") || null
+      status: 'pending'
     })
-    // auth.user?.id 
-  
-    const io = use('Socket')
+
+    // Emit new ride event
+    const io = Ws.io
     io.emit('ride:new', {
       rideId: ride.id,
       clientId: ride.clientId,
       pickupLocation: ride.pickupLocation,
-      destinationLocation: ride.destinationLocation
+      destinationLocation: ride.destinationLocation,
+      status: ride.status,
+      price:ride.price,
+      vehicle_type: ride.vehicleType
     })
-    // TODO: émettre un event socket si besoin
-    return  response.send({"message" :"ride add success" ,ride})
+
+console.log("ride dans le controllers " ,ride.destinationLocation)
+
+    return response.send({
+      message: "Ride created successfully",
+      ride
+    })
+  } catch (error) {
+    console.error('Validation error:', error.messages)
+    return response.status(422).send(error.messages)
   }
-  
+}
 
 
 
@@ -138,12 +190,15 @@ export default class RidesController {
     ride.status = status
     await ride.save()
 
-    const io = use('Socket')
+    // Emit status update event
+    const io = Ws.io
     io.emit('ride:status:update', {
       rideId: ride.id,
       status: ride.status,
       driverId: ride.driverId,
-      clientId: ride.clientId
+      clientId: ride.clientId,
+      pickupLocation: ride.pickupLocation,
+      destinationLocation: ride.destinationLocation
     })
   
     return response.ok({ message: 'Statut de la course mis à jour.', ride })
@@ -201,6 +256,7 @@ async paymentDistribution({ response }) {
       )
       .from('rides')
       .where('status', 'completed')
+      .where("is_paid" ,true)
       .groupBy('payment_method');
 
     const formattedData = distribution.map(row => ({
@@ -301,4 +357,8 @@ async paymentDistribution({ response }) {
     data: rides // Retourne tous les rides en une seule fois
   })
 }
+
+
+
+
 }

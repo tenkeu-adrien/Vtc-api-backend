@@ -21,13 +21,13 @@ public rating?: number
 public ratingComment?: string
 
   @column()
-  public vehicleType: 'moto' | 'tricycle'
+  public vehicleType: 'moto-taxi' | 'tricycle'
 
   @column()
-  public pickupLocation: object
+  public pickupLocation: string
 
   @column()
-  public destinationLocation: object
+  public destinationLocation: string
 
   @column()
   public distance?: number
@@ -39,7 +39,7 @@ public ratingComment?: string
   public paymentMethod?: string
 
   @column()
-  public recipient?: object
+  public recipient?: string
 
   @column()
   public duration?: string

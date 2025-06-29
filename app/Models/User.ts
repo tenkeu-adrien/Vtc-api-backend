@@ -30,6 +30,12 @@ export default class User extends BaseModel {
   @column()
   public phone: string
 
+  
+    @column()
+  public fcmToken : string
+
+  
+
   @column()
   public  vehiculeType: string
 

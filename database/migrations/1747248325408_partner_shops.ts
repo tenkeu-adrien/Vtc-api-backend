@@ -7,7 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       table.string('name').notNullable()
-      table.json('address').notNullable()
+      table.text('address').notNullable()
       table.string('contact_phone').notNullable()
       table.enum('category', ['supermarket', 'convenience', 'other']).notNullable()
       table.boolean('is_active').defaultTo(true)
