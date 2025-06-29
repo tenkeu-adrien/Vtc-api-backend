@@ -3,7 +3,6 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Order from 'App/Models/Order'
 import { schema } from '@ioc:Adonis/Core/Validator'
 // import { schema, rules } from '@ioc:Adonis/Core/Validator'
-import Database from '@ioc:Adonis/Lucid/Database'
 // import { DateTime } from 'luxon'
 export default class OrdersController {
   public async index({ request}: HttpContextContract) {
@@ -30,37 +29,37 @@ export default class OrdersController {
     return await query.paginate(page, limit)
   }
 
-  public async store({ request, auth }: HttpContextContract) {
-    const orderSchema = schema.create({
-      shopId: schema.number.optional(),
-      items: schema.array().members(
-        schema.object().members({
-          productId: schema.number(),
-          quantity: schema.number(),
-        })
-      ),
-      deliveryAddress: schema.object().members({
-        street: schema.string(),
-        city: schema.string(),
-        postal_code: schema.string(),
-        coords: schema.object().members({
-          lat: schema.number(),
-          lng: schema.number()
-        })
-      }),
-      paymentMethod: schema.enum(['mobile_money', 'cash'] as const),
-    })
+  // public async store({ request, auth }: HttpContextContract) {
+  //   const orderSchema = schema.create({
+  //     shopId: schema.number.optional(),
+  //     items: schema.array().members(
+  //       schema.object().members({
+  //         productId: schema.number(),
+  //         quantity: schema.number(),
+  //       })
+  //     ),
+  //     deliveryAddress: schema.object().members({
+  //       street: schema.string(),
+  //       city: schema.string(),
+  //       postal_code: schema.string(),
+  //       coords: schema.object().members({
+  //         lat: schema.number(),
+  //         lng: schema.number()
+  //       })
+  //     }),
+  //     paymentMethod: schema.enum(['mobile_money', 'cash'] as const),
+  //   })
 
-    const data = await request.validate({ schema: orderSchema })
-    const order = await Order.create({
-      clientId: auth.user!.id,
-      status: 'pending',
-      ...data
-    })
+  //   const data = await request.validate({ schema: orderSchema })
+  //   const order = await Order.create({
+  //     clientId: auth.user!.id,
+  //     status: 'pending',
+  //     ...data
+  //   })
 
-    await order.related('items').createMany(data.items)
-    return order
-  }
+  //   await order.related('items').createMany(data.items)
+  //   return order
+  // }
 
   public async show({ params}: HttpContextContract) {
     const order = await Order.query()
@@ -307,11 +306,11 @@ export default class OrdersController {
   /**
    * Calculer les frais de livraison (méthode privée)
    */
-  private async calculateDeliveryFee(deliveryAddress: any): Promise<number> {
-    // Implémentez votre logique de calcul ici
-    // Exemple basique: frais fixes + distance
-    return 500 // 500 FCFA par défaut
-  }
+  // private async calculateDeliveryFee(deliveryAddress: any): Promise<number> {
+  //   // Implémentez votre logique de calcul ici
+  //   // Exemple basique: frais fixes + distance
+  //   return 500 // 500 FCFA par défaut
+  // }
 
   /**
    * Statistiques des commandes (pour dashboard admin)

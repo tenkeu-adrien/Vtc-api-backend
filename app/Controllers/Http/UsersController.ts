@@ -94,12 +94,12 @@ export default class UsersController {
     const data = await request.validate({ schema: userSchema })
     const user = await User.create(data)
       let    paginateUser = response.created(user) 
-      const io = use('Socket')
+      // const io = use('Socket')
       
-      io.emit('user:new', {
-        userId: user.id,
-        role: user.role
-      })
+      // io.emit('user:new', {
+      //   userId: user.id,
+      //   role: user.role
+      // })
    return   response.send({success:true , paginateUser  ,message:"user created succefully"})
   }
 
